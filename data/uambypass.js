@@ -1,7 +1,8 @@
 require('events').EventEmitter.defaultMaxListeners = 0;
 const fs = require('fs'),
-    CloudScraper = require('cloudscraper'),
+    CloudScraper = require('cloudflare-scrapper'), 
     path = require('path');
+
 
 if (process.argv.length !== 6) {
     console.log(`
