@@ -1,6 +1,6 @@
 Require('events').EventEmitter.defaultMaxListeners = 0;
 const fs = require('fs'),
-    CloudScraper = require('clouds raper'), 
+    CloudScraper = require('cloudscraper'), 
     path = require('path');
 
 
