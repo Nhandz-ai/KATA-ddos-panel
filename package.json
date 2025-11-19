@@ -1,8 +1,9 @@
 {
   "dependencies": {
+    "cloudscraper": "^4.6.0", 
     "fake-useragent": "^1.0.1",
     "random-ua": "^0.0.6",
-    "cloudscraper": "^4.6.0" 
+    "sync-request": "^6.1.0"
   },
   "overrides": {
     "tough-cookie": "^4.1.3",
