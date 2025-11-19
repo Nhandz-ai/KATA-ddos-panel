@@ -17,26 +17,31 @@ const target = process.argv[2],
 
 let proxies = fs.readFileSync(process.argv[5], 'utf-8').replace(/\r/gi, '').split('\n').filter(Boolean);
 
-function send_req() {
+async function send_req() {
     let proxy = proxies[Math.floor(Math.random() * proxies.length)];
 
-    let getHeaders = new Promise(function (resolve, reject) {
-        CloudScraper({
+    let getHeaders = async function () {
+    try {
+        const response = await CloudScraper({
             uri: target,
             resolveWithFullResponse: true,
             proxy: 'http://' + proxy,
             challengesToSolve: 10
-        }, function (error, response) {
-            if (error) {
-                let obj_v = proxies.indexOf(proxy);
-                proxies.splice(obj_v, 1);
-                return console.log(error.message);
-            }
-            resolve(response.request.headers);
         });
-    });
 
-    getHeaders.then(function (result) {
+        return response.request.headers; 
+
+    } catch (error) {
+        let obj_v = proxies.indexOf(proxy);
+        if (obj_v !== -1) {
+            proxies.splice(obj_v, 1);
+        }
+        console.log(error.message);
+        
+        throw error;
+    }
+};
+
         // Object.keys(result).forEach(function (i, e) {
         //     console.log(i + ': ' + result[i]);
         // });
